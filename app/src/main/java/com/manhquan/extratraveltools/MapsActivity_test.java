@@ -47,6 +47,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private List<Marker> destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
     private ProgressDialog progressDialog;
+    private LatLng currentLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +58,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+
         mapFragment.getMapAsync(this);
 
         btnFindPath = (Button) findViewById(R.id.btnFindPath);
@@ -69,6 +71,8 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 sendRequest();
             }
         });
+
+
     }
 
     private void sendRequest() {
@@ -142,6 +146,21 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         //endregion
 
         mMap.setMyLocationEnabled(true);
+
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                mMap.clear();
+                Toast.makeText(MapsActivity_test.this, latLng.latitude + ", " + latLng.longitude, Toast.LENGTH_SHORT).show();
+
+                originMarkers.add(mMap.addMarker(new MarkerOptions()
+                        .title("Current location")
+                        .position(latLng)));
+                currentLocation = latLng;
+            }
+        });
 
     }
 

@@ -59,7 +59,12 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private List<Polyline> polylinePaths = new ArrayList<>();
     private ProgressDialog progressDialog;
     private LatLng currentLocation;
-    private PlaceAutocompleteFragment autocompleteFragment;
+
+    private PlaceAutocompleteFragment autocompleteFragmentOrigin;
+    private PlaceAutocompleteFragment autocompleteFragmentDestination;
+    private Place pOrigin;
+    private String pDestination;
+    private String currentAddress;
 
 
 
@@ -74,21 +79,26 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
-        autocompleteFragment = (PlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
-
+        autocompleteFragmentDestination = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.autocomplete_fragment_destination);
+        autocompleteFragmentOrigin = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.autocomplete_fragment_origin);
 
         mapFragment.getMapAsync(this);
 
         setFindViewById();
         setOnClickListener();
 
-        autocompleteFragment.setHint(getResources().getString(R.string.enter_destination));
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+        autocompleteFragmentOrigin.setHint(getResources().getString(R.string.enter_destination));
+        autocompleteFragmentDestination.setHint(getResources().getString(R.string.enter_destination));
+        autocompleteFragmentDestination.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
+                place.getAddress().toString();
+                pDestination = place.getAddress().toString();
+                tvDestination.setText(pDestination);
             }
 
             @Override
@@ -99,6 +109,11 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         });
 
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 
     private void setFindViewById() {
@@ -120,8 +135,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         btnEtOrigin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String location = (currentLocation.latitude + ", " + currentLocation.longitude).toString();
-                tvOrigin.setText(location);
+
 
                 btnEtOrigin.setVisibility(View.GONE);
                 btnEtDestination.setVisibility(View.GONE);
@@ -130,38 +144,35 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         btnEtDestination.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getLocationAddress();
+                getLocationAddress(currentLocation.latitude, currentLocation.longitude);
+                tvDestination.setText(currentAddress);
+                autocompleteFragmentDestination.setText(tvDestination.getText().toString());
                 btnEtOrigin.setVisibility(View.GONE);
                 btnEtDestination.setVisibility(View.GONE);
             }
         });
     }
 
-    private void getLocationAddress() {
+    private void getLocationAddress(Double Lat, Double Lng) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
 
             //Place latitude and longitude
-            List<Address> addresses = geocoder.getFromLocation(currentLocation.latitude, currentLocation.longitude, 1);
+            List<Address> addresses = geocoder.getFromLocation(Lat, Lng, 1);
 
             if (addresses != null) {
-
                 android.location.Address fetchedAddress = addresses.get(0);
                 StringBuilder strAddress = new StringBuilder();
-
                 for (int i = 0; i < fetchedAddress.getMaxAddressLineIndex(); i++) {
                     strAddress.append(fetchedAddress.getAddressLine(i)).append("\n");
                 }
-
-                autocompleteFragment.setText(strAddress.toString());
-
-//                myAddress.setText("I am at: " +strAddress.toString());
+//                autocompleteFragmentDestination.setText(strAddress.toString());
+                currentAddress = strAddress.toString();
+//                tvDestination.setText(strAddress.toString());
 
             } else {
                 Toast.makeText(this, "No location found...!", Toast.LENGTH_SHORT).show();
             }
-//                myAddress.setText("No location found..!");
-
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -248,14 +259,31 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
             public void onMapLongClick(LatLng latLng) {
                 mMap.clear();
 
+                StringBuilder strAddress = new StringBuilder();
+                Geocoder geocoder = new Geocoder(MapsActivity_test.this, Locale.getDefault());
+                try {
+                    List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+                    if (addresses != null) {
+                        android.location.Address fetchedAddress = addresses.get(0);
 
-                Toast.makeText(MapsActivity_test.this, latLng.latitude + ", " + latLng.longitude, Toast.LENGTH_SHORT).show();
+                        for (int i = 0; i < fetchedAddress.getMaxAddressLineIndex(); i++) {
+                            strAddress.append(fetchedAddress.getAddressLine(i)).append("\n");
+                        }
+                        Toast.makeText(MapsActivity_test.this, strAddress.toString(), Toast.LENGTH_SHORT).show();
 
+                    } else {
+                        Toast.makeText(MapsActivity_test.this, "No location found...!", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Could not get address..!", Toast.LENGTH_LONG).show();
+                }
                 btnEtOrigin.setVisibility(View.VISIBLE);
                 btnEtDestination.setVisibility(View.VISIBLE);
 
                 originMarkers.add(mMap.addMarker(new MarkerOptions()
-                        .title("Current location")
+                        .title(strAddress.toString())
                         .position(latLng)));
                 currentLocation = latLng;
             }

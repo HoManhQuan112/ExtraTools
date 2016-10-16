@@ -5,34 +5,41 @@
     android:orientation="vertical"
     tools:context="com.manhquan.extratraveltools.MapsActivity_test">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/lnOrigin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
+        <fragment
+            android:id="@+id/autocomplete_fragment_origin"
+            android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
         <AutoCompleteTextView
             android:id="@+id/tvOrigin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="@string/enter_origin_address" />
+            android:hint="@string/enter_origin_address"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btnEtOrigin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:text="@string/set"
             android:visibility="gone" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <fragment
-            android:id="@+id/place_autocomplete_fragment"
+            android:id="@+id/autocomplete_fragment_destination"
             android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />

@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,8 +38,14 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.manhquan.extratraveltools.Modules.DirectionFinder;
 import com.manhquan.extratraveltools.Modules.DirectionFinderListener;
 import com.manhquan.extratraveltools.Modules.Route;
+import com.manhquan.extratraveltools.RequestPermission.RequestPermission_Storage;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,11 +56,11 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private static final int REQUEST_ACCESS_FINE_LOCATION = 0;
     private static final int REQUEST_ACCESS_COARSE_LOCATION = 0;
     private static final String TAG = "MapsActivity_test";
-    CharSequence destination;
     private GoogleMap mMap;
     private Button btnFindPath;
     private Button btnEtOrigin;
     private Button btnEtDestination;
+    private ImageButton loadLocation;
     private AutoCompleteTextView tvOrigin;
     private AutoCompleteTextView tvDestination;
     private List<Marker> originMarkers = new ArrayList<>();
@@ -68,12 +75,16 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private String pDestination;
     private String currentAddress;
 
+    private RequestPermission_Storage requestPermission_storage;
+    private int data_block = 50000;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps_test);
+        requestPermission_storage.verifyStoragePermissions(this);
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -99,6 +110,8 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
+                btnEtOrigin.setVisibility(View.GONE);
+
                 place.getAddress().toString();
                 pOrigin = place.getAddress().toString();
                 tvOrigin.setText(pOrigin);
@@ -109,12 +122,15 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 // TODO: Handle the error.
                 Log.i(TAG, "An error occurred: " + status);
             }
+
         });
         autocompleteFragmentDestination.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
+                btnEtDestination.setVisibility(View.GONE);
+
                 place.getAddress().toString();
                 pDestination = place.getAddress().toString();
                 tvDestination.setText(pDestination);
@@ -138,7 +154,28 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 .setMessage("Are you sure you want to save location to memory?")
                 .setPositiveButton(getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        // continue with delete
+
+                        try {
+                            FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_READABLE);
+                            OutputStreamWriter osw = new OutputStreamWriter(fou);
+
+                            try {
+                                if (tvOrigin.getText().toString() != "") {
+                                    osw.write(tvOrigin.getText().toString());
+                                }
+                                if (tvDestination.getText().toString() != "") {
+                                    osw.write(tvDestination.getText().toString());
+                                }
+                                osw.flush();
+                                osw.close();
+                                Toast.makeText(MapsActivity_test.this, "Save location", Toast.LENGTH_SHORT).show();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
                     }
                 })
                 .setNegativeButton(getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
@@ -159,10 +196,37 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         btnEtDestination = (Button) findViewById(R.id.btnEtDestination);
         tvOrigin = (AutoCompleteTextView) findViewById(R.id.tvOrigin);
         tvDestination = (AutoCompleteTextView) findViewById(R.id.etDestination);
+        loadLocation = (ImageButton) findViewById(R.id.loadLocation);
 
     }
 
     private void setOnClickListener() {
+        loadLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    FileInputStream fis = openFileInput("location.txt");
+                    InputStreamReader isr = new InputStreamReader(fis);
+                    char[] data = new char[data_block];
+                    String final_data = "";
+                    int size;
+
+                    try {
+                        while ((size = isr.read(data)) > 0) {
+                            String read_data = String.copyValueOf(data, 0, size);
+                            final_data += read_data;
+                            data = new char[data_block];
+                            Toast.makeText(MapsActivity_test.this, "Message: " + final_data, Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         btnFindPath.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

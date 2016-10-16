@@ -62,7 +62,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
 
     private PlaceAutocompleteFragment autocompleteFragmentOrigin;
     private PlaceAutocompleteFragment autocompleteFragmentDestination;
-    private Place pOrigin;
+    private String pOrigin;
     private String pDestination;
     private String currentAddress;
 
@@ -91,6 +91,23 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
 
         autocompleteFragmentOrigin.setHint(getResources().getString(R.string.enter_destination));
         autocompleteFragmentDestination.setHint(getResources().getString(R.string.enter_destination));
+
+        autocompleteFragmentOrigin.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.getName());
+                place.getAddress().toString();
+                pOrigin = place.getAddress().toString();
+                tvOrigin.setText(pOrigin);
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });
         autocompleteFragmentDestination.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
@@ -135,8 +152,9 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         btnEtOrigin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
+                getLocationAddress(currentLocation.latitude, currentLocation.longitude);
+                tvOrigin.setText(currentAddress);
+                autocompleteFragmentOrigin.setText(tvOrigin.getText().toString());
                 btnEtOrigin.setVisibility(View.GONE);
                 btnEtDestination.setVisibility(View.GONE);
             }
@@ -166,10 +184,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 for (int i = 0; i < fetchedAddress.getMaxAddressLineIndex(); i++) {
                     strAddress.append(fetchedAddress.getAddressLine(i)).append("\n");
                 }
-//                autocompleteFragmentDestination.setText(strAddress.toString());
                 currentAddress = strAddress.toString();
-//                tvDestination.setText(strAddress.toString());
-
             } else {
                 Toast.makeText(this, "No location found...!", Toast.LENGTH_SHORT).show();
             }
@@ -212,21 +227,6 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
 //                .title("Bến Thành Market")
 //                .position(choBenThanh)));
 
-//        mMap.addMarker(new MarkerOptions()
-//                .position(choBenThanh)
-//                .title("Ben Thanh Market")
-////                .icon(BitmapDescriptorFactory.fromResource(R.drawable.maker_location_a))
-//
-//        );
-//
-//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(choBenThanh, 18));
-
-//    mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);//set map type vua duong vua dia hinh
-
-//        LatLng currentLocation = new LatLng(mMap.getMyLocation().getLatitude(), mMap.getMyLocation().getLongitude());
-//        LatLng currentLocation = new LatLng(googleMap.getL);
-//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 18));
-
         //region Permission for setMyLocationEnabled
         if (ActivityCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -258,19 +258,16 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
             @Override
             public void onMapLongClick(LatLng latLng) {
                 mMap.clear();
-
                 StringBuilder strAddress = new StringBuilder();
                 Geocoder geocoder = new Geocoder(MapsActivity_test.this, Locale.getDefault());
                 try {
                     List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
                     if (addresses != null) {
                         android.location.Address fetchedAddress = addresses.get(0);
-
                         for (int i = 0; i < fetchedAddress.getMaxAddressLineIndex(); i++) {
                             strAddress.append(fetchedAddress.getAddressLine(i)).append("\n");
                         }
                         Toast.makeText(MapsActivity_test.this, strAddress.toString(), Toast.LENGTH_SHORT).show();
-
                     } else {
                         Toast.makeText(MapsActivity_test.this, "No location found...!", Toast.LENGTH_SHORT).show();
                     }

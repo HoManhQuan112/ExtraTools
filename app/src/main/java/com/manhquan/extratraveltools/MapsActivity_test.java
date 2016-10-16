@@ -1,21 +1,27 @@
 package com.manhquan.extratraveltools;
 
-import android.*;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -30,54 +36,143 @@ import com.manhquan.extratraveltools.Modules.DirectionFinder;
 import com.manhquan.extratraveltools.Modules.DirectionFinderListener;
 import com.manhquan.extratraveltools.Modules.Route;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class MapsActivity_test extends FragmentActivity implements OnMapReadyCallback, DirectionFinderListener {
 
     private static final int REQUEST_ACCESS_FINE_LOCATION = 0;
     private static final int REQUEST_ACCESS_COARSE_LOCATION = 0;
-
+    private static final String TAG = "MapsActivity_test";
+    CharSequence destination;
     private GoogleMap mMap;
     private Button btnFindPath;
-    private EditText etOrigin;
-    private EditText etDestination;
+    private Button btnEtOrigin;
+    private Button btnEtDestination;
+    private AutoCompleteTextView tvOrigin;
+    private AutoCompleteTextView tvDestination;
     private List<Marker> originMarkers = new ArrayList<>();
     private List<Marker> destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
     private ProgressDialog progressDialog;
     private LatLng currentLocation;
+    private PlaceAutocompleteFragment autocompleteFragment;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps_test);
 
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
+        autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
+
         mapFragment.getMapAsync(this);
 
-        btnFindPath = (Button) findViewById(R.id.btnFindPath);
-        etOrigin = (EditText) findViewById(R.id.etOrigin);
-        etDestination = (EditText) findViewById(R.id.etDestination);
+        setFindViewById();
+        setOnClickListener();
 
-        btnFindPath.setOnClickListener(new View.OnClickListener() {
+        autocompleteFragment.setHint(getResources().getString(R.string.enter_destination));
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
-            public void onClick(View v) {
-                sendRequest();
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.getName());
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
             }
         });
 
 
     }
 
+    private void setFindViewById() {
+        btnFindPath = (Button) findViewById(R.id.btnFindPath);
+        btnEtOrigin = (Button) findViewById(R.id.btnEtOrigin);
+        btnEtDestination = (Button) findViewById(R.id.btnEtDestination);
+        tvOrigin = (AutoCompleteTextView) findViewById(R.id.tvOrigin);
+        tvDestination = (AutoCompleteTextView) findViewById(R.id.etDestination);
+
+    }
+
+    private void setOnClickListener() {
+        btnFindPath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendRequest();
+            }
+        });
+        btnEtOrigin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String location = (currentLocation.latitude + ", " + currentLocation.longitude).toString();
+                tvOrigin.setText(location);
+
+                btnEtOrigin.setVisibility(View.GONE);
+                btnEtDestination.setVisibility(View.GONE);
+            }
+        });
+        btnEtDestination.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getLocationAddress();
+                btnEtOrigin.setVisibility(View.GONE);
+                btnEtDestination.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void getLocationAddress() {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+
+            //Place latitude and longitude
+            List<Address> addresses = geocoder.getFromLocation(currentLocation.latitude, currentLocation.longitude, 1);
+
+            if (addresses != null) {
+
+                android.location.Address fetchedAddress = addresses.get(0);
+                StringBuilder strAddress = new StringBuilder();
+
+                for (int i = 0; i < fetchedAddress.getMaxAddressLineIndex(); i++) {
+                    strAddress.append(fetchedAddress.getAddressLine(i)).append("\n");
+                }
+
+                autocompleteFragment.setText(strAddress.toString());
+
+//                myAddress.setText("I am at: " +strAddress.toString());
+
+            } else {
+                Toast.makeText(this, "No location found...!", Toast.LENGTH_SHORT).show();
+            }
+//                myAddress.setText("No location found..!");
+
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "Could not get address..!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+
     private void sendRequest() {
-        String origin = etOrigin.getText().toString();
-        String destination = etDestination.getText().toString();
+        String origin = tvOrigin.getText().toString();
+        String destination = tvDestination.getText().toString();
         if (origin.isEmpty()) {
             Toast.makeText(this, "Please enter origin address!", Toast.LENGTH_SHORT).show();
             return;
@@ -151,9 +246,13 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
-
                 mMap.clear();
+
+
                 Toast.makeText(MapsActivity_test.this, latLng.latitude + ", " + latLng.longitude, Toast.LENGTH_SHORT).show();
+
+                btnEtOrigin.setVisibility(View.VISIBLE);
+                btnEtDestination.setVisibility(View.VISIBLE);
 
                 originMarkers.add(mMap.addMarker(new MarkerOptions()
                         .title("Current location")
@@ -181,6 +280,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
             }
         }
     }
+//endregion
 
     @Override
     public void onDirectionFinderStart() {
@@ -238,5 +338,5 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
             polylinePaths.add(mMap.addPolyline(polylineOptions));
         }
     }
-    //endregion
+
 }

@@ -1,7 +1,9 @@
 package com.manhquan.extratraveltools;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -128,10 +130,28 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
 
     }
 
+    //region Back key
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        new AlertDialog.Builder(this)
+                .setTitle("Save location to memory?")
+                .setMessage("Are you sure you want to save location to memory?")
+                .setPositiveButton(getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // continue with delete
+                    }
+                })
+                .setNegativeButton(getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        progressDialog.onBackPressed();
+                    }
+                })
+                .setCancelable(true)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+
     }
+    //endregion
 
     private void setFindViewById() {
         btnFindPath = (Button) findViewById(R.id.btnFindPath);
@@ -250,10 +270,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
             //endregion
         }
         //endregion
-
         mMap.setMyLocationEnabled(true);
-
-
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
@@ -285,9 +302,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 currentLocation = latLng;
             }
         });
-
     }
-
 
     //region Request for access current location
     @Override

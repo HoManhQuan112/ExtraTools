@@ -40,9 +40,14 @@ import com.manhquan.extratraveltools.Modules.DirectionFinderListener;
 import com.manhquan.extratraveltools.Modules.Route;
 import com.manhquan.extratraveltools.RequestPermission.RequestPermission_Storage;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -76,7 +81,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private String currentAddress;
 
     private RequestPermission_Storage requestPermission_storage;
-    private int data_block = 50000;
+    private int data_block = 500;
 
 
 
@@ -102,17 +107,14 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         setFindViewById();
         setOnClickListener();
 
-        autocompleteFragmentOrigin.setHint(getResources().getString(R.string.enter_destination));
+        autocompleteFragmentOrigin.setHint(getResources().getString(R.string.enter_origin));
         autocompleteFragmentDestination.setHint(getResources().getString(R.string.enter_destination));
 
         autocompleteFragmentOrigin.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
                 btnEtOrigin.setVisibility(View.GONE);
-
-                place.getAddress().toString();
                 pOrigin = place.getAddress().toString();
                 tvOrigin.setText(pOrigin);
             }
@@ -130,20 +132,15 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 // TODO: Get info about the selected place.
                 Log.i(TAG, "Place: " + place.getName());
                 btnEtDestination.setVisibility(View.GONE);
-
-                place.getAddress().toString();
                 pDestination = place.getAddress().toString();
                 tvDestination.setText(pDestination);
             }
-
             @Override
             public void onError(Status status) {
                 // TODO: Handle the error.
                 Log.i(TAG, "An error occurred: " + status);
             }
         });
-
-
     }
 
     //region Back key
@@ -154,25 +151,32 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 .setMessage("Are you sure you want to save location to memory?")
                 .setPositiveButton(getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-
+                        File file = getFileStreamPath("location.txt");
+                        FileOutputStream fou = null;
                         try {
-                            FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_READABLE);
-                            OutputStreamWriter osw = new OutputStreamWriter(fou);
-
+                            fou = openFileOutput("location.txt", MODE_WORLD_READABLE);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        OutputStreamWriter osw = new OutputStreamWriter(fou);
+                        if (tvOrigin.getText().toString() != "") {
                             try {
-                                if (tvOrigin.getText().toString() != "") {
-                                    osw.write(tvOrigin.getText().toString());
-                                }
-                                if (tvDestination.getText().toString() != "") {
-                                    osw.write(tvDestination.getText().toString());
-                                }
-                                osw.flush();
-                                osw.close();
-                                Toast.makeText(MapsActivity_test.this, "Save location", Toast.LENGTH_SHORT).show();
+                                osw.write(tvOrigin.getText().toString() + "\n");
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                        } catch (FileNotFoundException e) {
+                        }
+                        if (tvDestination.getText().toString() != "") {
+                            try {
+                                osw.write(tvDestination.getText().toString() + "\n");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        try {
+                            osw.flush();
+                            osw.close();
+                        } catch (IOException e) {
                             e.printStackTrace();
                         }
 
@@ -188,29 +192,21 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 .show();
 
     }
-    //endregion
-
-    private void setFindViewById() {
-        btnFindPath = (Button) findViewById(R.id.btnFindPath);
-        btnEtOrigin = (Button) findViewById(R.id.btnEtOrigin);
-        btnEtDestination = (Button) findViewById(R.id.btnEtDestination);
-        tvOrigin = (AutoCompleteTextView) findViewById(R.id.tvOrigin);
-        tvDestination = (AutoCompleteTextView) findViewById(R.id.etDestination);
-        loadLocation = (ImageButton) findViewById(R.id.loadLocation);
-
-    }
 
     private void setOnClickListener() {
         loadLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                File file = getFileStreamPath("location.txt");
+                if (!file.exists()) {
+                    Toast.makeText(MapsActivity_test.this, "Not found saved location file, save location to load", Toast.LENGTH_SHORT).show();
+                }
                 try {
                     FileInputStream fis = openFileInput("location.txt");
                     InputStreamReader isr = new InputStreamReader(fis);
                     char[] data = new char[data_block];
                     String final_data = "";
                     int size;
-
                     try {
                         while ((size = isr.read(data)) > 0) {
                             String read_data = String.copyValueOf(data, 0, size);
@@ -221,7 +217,6 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -255,6 +250,15 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         });
     }
 
+    private void setFindViewById() {
+        btnFindPath = (Button) findViewById(R.id.btnFindPath);
+        btnEtOrigin = (Button) findViewById(R.id.btnEtOrigin);
+        btnEtDestination = (Button) findViewById(R.id.btnEtDestination);
+        tvOrigin = (AutoCompleteTextView) findViewById(R.id.tvOrigin);
+        tvDestination = (AutoCompleteTextView) findViewById(R.id.etDestination);
+        loadLocation = (ImageButton) findViewById(R.id.loadLocation);
+
+    }
     private void getLocationAddress(Double Lat, Double Lng) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {

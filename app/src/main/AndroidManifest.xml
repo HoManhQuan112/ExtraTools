@@ -35,7 +35,9 @@
             android:name=".MapsActivity_test"
             android:label="@string/title_activity_maps_test">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action
+                    android:name="android.intent.action.MAIN"
+                    android:configChanges="orientation|screenSize" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>

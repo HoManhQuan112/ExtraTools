@@ -15,9 +15,13 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,25 +44,15 @@ import com.manhquan.extratraveltools.Modules.DirectionFinderListener;
 import com.manhquan.extratraveltools.Modules.Route;
 import com.manhquan.extratraveltools.RequestPermission.RequestPermission_Storage;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -67,6 +61,8 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private static final int REQUEST_ACCESS_FINE_LOCATION = 0;
     private static final int REQUEST_ACCESS_COARSE_LOCATION = 0;
     private static final String TAG = "MapsActivity_test";
+    ListView lvLocation;
+    String[] temp;
     private GoogleMap mMap;
     private Button btnFindPath;
     private Button btnEtOrigin;
@@ -79,20 +75,24 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private List<Polyline> polylinePaths = new ArrayList<>();
     private ProgressDialog progressDialog;
     private LatLng currentLocation;
-
     private PlaceAutocompleteFragment autocompleteFragmentOrigin;
     private PlaceAutocompleteFragment autocompleteFragmentDestination;
     private String pOrigin;
     private String pDestination;
     private String currentAddress;
-
     private RequestPermission_Storage requestPermission_storage;
     private int data_block = 500;
-
     private String location_origin = "location_origin.txt";
     private String location_destination = "location_destination.txt";
-
     private String[] splitLocation;
+    private String[] splitLocationReplace;
+    private LinearLayout showLocation;
+    private LinearLayout llShowConfig;
+    private Button btnCloseLoadLocation;
+    private Button btnSetOrigin;
+    private Button btnSetDestination;
+    private Button btnRemove;
+    private int lvPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,7 +161,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 .setPositiveButton(getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         //region save file
-                        File file = getFileStreamPath(location_origin);
+                        File file = getFileStreamPath("location.txt");
                         if (!file.exists()) {
                             try {
                                 FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_READABLE | MODE_APPEND);
@@ -189,7 +189,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                             }
                         } else {
                             try {
-                                FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_WRITEABLE);
+                                FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_READABLE | MODE_APPEND);
 //                                BufferedWriter buffw = new BufferedWriter(fou);
                                 OutputStreamWriter osw = new OutputStreamWriter(fou);
                                 if (tvOrigin.getText().toString() != "") {
@@ -218,7 +218,6 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
 
 
                         //endregion
-
                     }
                 })
                 .setNegativeButton(getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
@@ -259,7 +258,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         loadLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                showLocation.setVisibility(View.VISIBLE);
                 //region load file location
                 File file = getFileStreamPath("location.txt");
                 if (!file.exists()) {
@@ -277,7 +276,6 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                                 final_data += read_data;
                                 data = new char[data_block];
                                 splitLocation = final_data.split("\n\n");
-                                Toast.makeText(MapsActivity_test.this, "Message: " + final_data, Toast.LENGTH_SHORT).show();
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -286,6 +284,21 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                         e.printStackTrace();
                     }
 
+                    for (int i = 0; i < splitLocation.length; i++) {
+                        splitLocation[i] = splitLocation[i].replace("\n", " ");
+                    }
+
+                    final ArrayAdapter<String> adapter = new ArrayAdapter<String>(MapsActivity_test.this,
+                            android.R.layout.simple_list_item_1, splitLocation);
+                    lvLocation.setAdapter(adapter);
+                    lvLocation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            llShowConfig.setVisibility(View.VISIBLE);
+                            lvPosition = position;
+
+                        }
+                    });
                 }
                 //endregion
             }
@@ -316,6 +329,73 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 btnEtDestination.setVisibility(View.GONE);
             }
         });
+        btnCloseLoadLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLocation.setVisibility(View.GONE);
+            }
+        });
+        btnSetOrigin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLocation.setVisibility(View.GONE);
+
+
+                llShowConfig.setVisibility(View.GONE);
+                showLocation.setVisibility(View.VISIBLE);
+
+            }
+        });
+        btnSetDestination.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLocation.setVisibility(View.GONE);
+
+
+                llShowConfig.setVisibility(View.GONE);
+                showLocation.setVisibility(View.VISIBLE);
+            }
+        });
+        btnRemove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                showLocation.setVisibility(View.GONE);
+
+//                splitLocation[lvPosition] = null;
+                temp = new String[splitLocation.length - 1];
+                int j = 0;
+                for (int i = 0; i < splitLocation.length - 1; i++) {
+                    if (i < lvPosition) {
+                        temp[i] = splitLocation[i];
+                    } else if (i == lvPosition) {
+                        temp[i] = splitLocation[i + 1];
+                    } else {
+                        temp[i] = splitLocation[i + 1];
+                    }
+                }
+                splitLocation = temp;
+//                int a = splitLocation.length;
+
+                try {
+                    FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_READABLE);
+                    OutputStreamWriter osw = new OutputStreamWriter(fou);
+                    for (int i = 0; i < splitLocation.length; i++) {
+                        osw.write(splitLocation[i] + "\n\n");
+                    }
+                    osw.flush();
+                    osw.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                llShowConfig.setVisibility(View.GONE);
+                showLocation.setVisibility(View.GONE);
+
+            }
+        });
     }
 
     private void setFindViewById() {
@@ -325,8 +405,16 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         tvOrigin = (AutoCompleteTextView) findViewById(R.id.tvOrigin);
         tvDestination = (AutoCompleteTextView) findViewById(R.id.etDestination);
         loadLocation = (ImageButton) findViewById(R.id.loadLocation);
+        showLocation = (LinearLayout) findViewById(R.id.showLocation);
+        llShowConfig = (LinearLayout) findViewById(R.id.llShowConfig);
+        lvLocation = (ListView) findViewById(R.id.lvLocation);
+        btnCloseLoadLocation = (Button) findViewById(R.id.btnCloseLoadLocation);
+        btnSetOrigin = (Button) findViewById(R.id.btnSetOrigin);
+        btnSetDestination = (Button) findViewById(R.id.btnSetDestination);
+        btnRemove = (Button) findViewById(R.id.btnRemove);
 
     }
+
     private void getLocationAddress(Double Lat, Double Lng) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
@@ -351,7 +439,6 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         }
     }
 
-
     private void sendRequest() {
         String origin = tvOrigin.getText().toString();
         String destination = tvDestination.getText().toString();
@@ -371,18 +458,9 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         }
     }
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-//        LatLng choBenThanh = new LatLng(10.772513, 106.698180);
-//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(choBenThanh, 18));
-//        originMarkers.add(mMap.addMarker(new MarkerOptions()
-//                .title("Bến Thành Market")
-//                .position(choBenThanh)));
-
         //region Permission for setMyLocationEnabled
         if (ActivityCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED

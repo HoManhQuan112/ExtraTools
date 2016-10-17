@@ -8,4 +8,10 @@
     <string name="no">NO</string>
     <string name="enter_destination_address">Enter destination address</string>
     <string name="enter_destination">Enter destination</string>
+    <string name="load_location">Load Location</string>
+    <string name="image">Image</string>
+    <string name="_0_km">0 km</string>
+    <string name="find_path">Find path</string>
+    <string name="_0_min">0 min</string>
+    <string name="show_location_tv">show_location_tv</string>
 </resources>

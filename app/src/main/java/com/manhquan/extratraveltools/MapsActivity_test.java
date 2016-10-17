@@ -40,6 +40,10 @@ import com.manhquan.extratraveltools.Modules.DirectionFinderListener;
 import com.manhquan.extratraveltools.Modules.Route;
 import com.manhquan.extratraveltools.RequestPermission.RequestPermission_Storage;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -49,10 +53,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -83,7 +89,10 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private RequestPermission_Storage requestPermission_storage;
     private int data_block = 500;
 
+    private String location_origin = "location_origin.txt";
+    private String location_destination = "location_destination.txt";
 
+    private String[] splitLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,34 +160,64 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 .setMessage("Are you sure you want to save location to memory?")
                 .setPositiveButton(getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        File file = getFileStreamPath("location.txt");
-                        FileOutputStream fou = null;
-                        try {
-                            fou = openFileOutput("location.txt", MODE_WORLD_READABLE);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                        OutputStreamWriter osw = new OutputStreamWriter(fou);
-                        if (tvOrigin.getText().toString() != "") {
+                        //region save file
+                        File file = getFileStreamPath(location_origin);
+                        if (!file.exists()) {
                             try {
-                                osw.write(tvOrigin.getText().toString() + "\n");
+                                FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_READABLE | MODE_APPEND);
+                                OutputStreamWriter osw = new OutputStreamWriter(fou);
+                                if (tvOrigin.getText().toString() != "") {
+                                    try {
+                                        osw.write(tvOrigin.getText().toString() + "\n");
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if (tvDestination.getText().toString() != "") {
+                                    try {
+                                        osw.write(tvDestination.getText().toString() + "\n");
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                osw.flush();
+                                osw.close();
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                        }
-                        if (tvDestination.getText().toString() != "") {
+                        } else {
                             try {
-                                osw.write(tvDestination.getText().toString() + "\n");
+                                FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_WRITEABLE);
+//                                BufferedWriter buffw = new BufferedWriter(fou);
+                                OutputStreamWriter osw = new OutputStreamWriter(fou);
+                                if (tvOrigin.getText().toString() != "") {
+                                    try {
+                                        osw.append(tvOrigin.getText().toString() + "\n");
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if (tvDestination.getText().toString() != "") {
+                                    try {
+                                        osw.append(tvDestination.getText().toString() + "\n");
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                osw.flush();
+                                osw.close();
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+
                         }
-                        try {
-                            osw.flush();
-                            osw.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+
+
+                        //endregion
 
                     }
                 })
@@ -193,33 +232,62 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
 
     }
 
+//    public String loadJSONFromAsset() {
+//        File file = getFileStreamPath("location.txt");
+//        String json = null;
+//        if (!file.exists()) {
+//            Toast.makeText(MapsActivity_test.this, "Not found saved location file, save location to load", Toast.LENGTH_SHORT).show();
+//        } else {
+//            try {
+//                InputStream is = getApplication().openFileInput("location.txt");
+//                int size = is.available();
+//                byte[] buffer = new byte[size];
+//                is.read(buffer);
+//                is.close();
+//                json = new String(buffer, "utf-8");
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                return null;
+//            }
+//        }
+//        return json;
+//    }
+
     private void setOnClickListener() {
         loadLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                //region load file location
                 File file = getFileStreamPath("location.txt");
                 if (!file.exists()) {
                     Toast.makeText(MapsActivity_test.this, "Not found saved location file, save location to load", Toast.LENGTH_SHORT).show();
-                }
-                try {
-                    FileInputStream fis = openFileInput("location.txt");
-                    InputStreamReader isr = new InputStreamReader(fis);
-                    char[] data = new char[data_block];
-                    String final_data = "";
-                    int size;
+                } else {
                     try {
-                        while ((size = isr.read(data)) > 0) {
-                            String read_data = String.copyValueOf(data, 0, size);
-                            final_data += read_data;
-                            data = new char[data_block];
-                            Toast.makeText(MapsActivity_test.this, "Message: " + final_data, Toast.LENGTH_SHORT).show();
+                        FileInputStream fis = openFileInput("location.txt");
+                        InputStreamReader isr = new InputStreamReader(fis);
+                        char[] data = new char[data_block];
+                        String final_data = "";
+                        int size;
+                        try {
+                            while ((size = isr.read(data)) > 0) {
+                                String read_data = String.copyValueOf(data, 0, size);
+                                final_data += read_data;
+                                data = new char[data_block];
+                                splitLocation = final_data.split("\n\n");
+                                Toast.makeText(MapsActivity_test.this, "Message: " + final_data, Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    } catch (IOException e) {
+                    } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+
                 }
+                //endregion
             }
         });
         btnFindPath.setOnClickListener(new View.OnClickListener() {

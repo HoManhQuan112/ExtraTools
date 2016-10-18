@@ -93,6 +93,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private Button btnSetDestination;
     private Button btnRemove;
     private int lvPosition;
+    private TextView tvShowLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -284,22 +285,31 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                         e.printStackTrace();
                     }
 
-                    for (int i = 0; i < splitLocation.length; i++) {
-                        splitLocation[i] = splitLocation[i].replace("\n", " ");
-                    }
-
-                    final ArrayAdapter<String> adapter = new ArrayAdapter<String>(MapsActivity_test.this,
-                            android.R.layout.simple_list_item_1, splitLocation);
-                    lvLocation.setAdapter(adapter);
-                    lvLocation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            llShowConfig.setVisibility(View.VISIBLE);
-                            lvPosition = position;
-
+                    if (splitLocation == null) {
+                        Toast.makeText(MapsActivity_test.this,
+                                "Not found saved location file, save location to load",
+                                Toast.LENGTH_SHORT).show();
+                        showLocation.setVisibility(View.GONE);
+                    } else {
+                        for (int i = 0; i < splitLocation.length; i++) {
+                            splitLocation[i] = splitLocation[i].replace("\n", " ");
                         }
-                    });
+                        ArrayAdapter<String> adapter = new ArrayAdapter<String>(MapsActivity_test.this,
+                                android.R.layout.simple_list_item_1, splitLocation);
+                        lvLocation.setAdapter(adapter);
+                        lvLocation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                tvShowLocation.setText(splitLocation[position]);
+                                showLocation.setVisibility(View.GONE);
+                                llShowConfig.setVisibility(View.VISIBLE);
+                                lvPosition = position;
+
+                            }
+                        });
+                    }
                 }
+
                 //endregion
             }
         });
@@ -360,10 +370,10 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
             @Override
             public void onClick(View v) {
 
-
                 showLocation.setVisibility(View.GONE);
+                tvShowLocation.setText(splitLocation[lvPosition]);
 
-//                splitLocation[lvPosition] = null;
+
                 temp = new String[splitLocation.length - 1];
                 int j = 0;
                 for (int i = 0; i < splitLocation.length - 1; i++) {
@@ -376,7 +386,6 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                     }
                 }
                 splitLocation = temp;
-//                int a = splitLocation.length;
 
                 try {
                     FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_READABLE);
@@ -391,8 +400,21 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(MapsActivity_test.this,
+                        android.R.layout.simple_list_item_1, splitLocation);
+                lvLocation.setAdapter(adapter);
+                lvLocation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        tvShowLocation.setText(splitLocation[position]);
+                        showLocation.setVisibility(View.GONE);
+                        llShowConfig.setVisibility(View.VISIBLE);
+                        lvPosition = position;
+
+                    }
+                });
                 llShowConfig.setVisibility(View.GONE);
-                showLocation.setVisibility(View.GONE);
+                showLocation.setVisibility(View.VISIBLE);
 
             }
         });
@@ -412,7 +434,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         btnSetOrigin = (Button) findViewById(R.id.btnSetOrigin);
         btnSetDestination = (Button) findViewById(R.id.btnSetDestination);
         btnRemove = (Button) findViewById(R.id.btnRemove);
-
+        tvShowLocation = (TextView) findViewById(R.id.tvShowLocation);
     }
 
     private void getLocationAddress(Double Lat, Double Lng) {

@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -94,6 +95,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private Button btnRemove;
     private int lvPosition;
     private TextView tvShowLocation;
+    private LinearLayout lnCancel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -260,10 +262,12 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
             @Override
             public void onClick(View v) {
                 showLocation.setVisibility(View.VISIBLE);
+                lnCancel.setVisibility(View.VISIBLE);
                 //region load file location
                 File file = getFileStreamPath("location.txt");
                 if (!file.exists()) {
                     Toast.makeText(MapsActivity_test.this, "Not found saved location file, save location to load", Toast.LENGTH_SHORT).show();
+                    lnCancel.setVisibility(View.GONE);
                 } else {
                     try {
                         FileInputStream fis = openFileInput("location.txt");
@@ -342,6 +346,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         btnCloseLoadLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                lnCancel.setVisibility(View.GONE);
                 showLocation.setVisibility(View.GONE);
             }
         });
@@ -349,31 +354,28 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
             @Override
             public void onClick(View v) {
                 showLocation.setVisibility(View.GONE);
-
-
+                lnCancel.setVisibility(View.GONE);
+                tvOrigin.setText(tvShowLocation.getText().toString());
+                autocompleteFragmentOrigin.setText(tvShowLocation.getText().toString());
                 llShowConfig.setVisibility(View.GONE);
-                showLocation.setVisibility(View.VISIBLE);
-
             }
         });
         btnSetDestination.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showLocation.setVisibility(View.GONE);
-
-
+                lnCancel.setVisibility(View.GONE);
+                tvDestination.setText(tvShowLocation.getText().toString());
+                autocompleteFragmentDestination.setText(tvShowLocation.getText().toString());
                 llShowConfig.setVisibility(View.GONE);
-                showLocation.setVisibility(View.VISIBLE);
             }
         });
         btnRemove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 showLocation.setVisibility(View.GONE);
+                lnCancel.setVisibility(View.GONE);
                 tvShowLocation.setText(splitLocation[lvPosition]);
-
-
                 temp = new String[splitLocation.length - 1];
                 int j = 0;
                 for (int i = 0; i < splitLocation.length - 1; i++) {
@@ -400,7 +402,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(MapsActivity_test.this,
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(MapsActivity_test.this,
                         android.R.layout.simple_list_item_1, splitLocation);
                 lvLocation.setAdapter(adapter);
                 lvLocation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -416,6 +418,14 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 llShowConfig.setVisibility(View.GONE);
                 showLocation.setVisibility(View.VISIBLE);
 
+            }
+        });
+        lnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLocation.setVisibility(View.GONE);
+                llShowConfig.setVisibility(View.GONE);
+                lnCancel.setVisibility(View.GONE);
             }
         });
     }
@@ -435,6 +445,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         btnSetDestination = (Button) findViewById(R.id.btnSetDestination);
         btnRemove = (Button) findViewById(R.id.btnRemove);
         tvShowLocation = (TextView) findViewById(R.id.tvShowLocation);
+        lnCancel = (LinearLayout) findViewById(R.id.lnCancel);
     }
 
     private void getLocationAddress(Double Lat, Double Lng) {

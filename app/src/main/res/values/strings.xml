@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ExtraTravelTools</string>
-    <string name="title_activity_maps_test">Map</string>
+    <string name="title_activity_maps_test">QTravelTools</string>
     <string name="enter_origin_address">Enter origin address</string>
     <string name="enter_origin">Enter origin</string>
     <string name="set">SET</string>

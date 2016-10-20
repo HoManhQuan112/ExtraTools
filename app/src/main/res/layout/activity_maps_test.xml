@@ -138,6 +138,13 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/lnCancel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:visibility="gone" />
+
+    <LinearLayout
         android:id="@+id/showLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -155,7 +162,8 @@
         <ListView
             android:id="@+id/lvLocation"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="4dp"
             android:choiceMode="singleChoice"
             android:divider="@android:color/transparent"
             android:dividerHeight="0dp" />
@@ -168,6 +176,7 @@
             android:textSize="12sp" />
 
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/llShowConfig"
         android:layout_width="match_parent"
@@ -181,13 +190,14 @@
         android:gravity="center"
         android:orientation="vertical"
         android:paddingBottom="12dp"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/tvShowLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:clickable="false"
             android:gravity="center"
             android:textSize="20sp" />
 
@@ -196,7 +206,6 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="horizontal"
-
             >
 
             <Button

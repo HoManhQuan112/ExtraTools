@@ -4,6 +4,10 @@
     android:layout_height="match_parent"
     tools:context="com.manhquan.extratraveltools.MapsActivity_test">
 
+    <RelativeLayout
+        android:id="@+id/rlMain"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <LinearLayout
         android:id="@+id/show_map"
         android:layout_width="match_parent"
@@ -230,6 +234,31 @@
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/lnLoading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="visible" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/press_to_continue"
+            android:textSize="24sp" />
+    </LinearLayout>
+
 </RelativeLayout>
 
 

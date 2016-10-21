@@ -9,10 +9,10 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -59,9 +59,15 @@ import java.util.Locale;
 
 public class MapsActivity_test extends FragmentActivity implements OnMapReadyCallback, DirectionFinderListener {
 
-    private static final int REQUEST_ACCESS_FINE_LOCATION = 0;
-    private static final int REQUEST_ACCESS_COARSE_LOCATION = 0;
+    private static final int REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int REQUEST_ACCESS_COARSE_LOCATION = 1;
     private static final String TAG = "MapsActivity_test";
+    private static String[] PERMISSIONS_LOCATION = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.CONTROL_LOCATION_UPDATES,
+            Manifest.permission_group.LOCATION
+    };
     ListView lvLocation;
     String[] temp;
     private GoogleMap mMap;
@@ -96,12 +102,20 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private int lvPosition;
     private TextView tvShowLocation;
     private LinearLayout lnCancel;
+    private LinearLayout lnLoading;
+    private RelativeLayout rlMain;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.activity_maps_test);
-        requestPermission_storage.verifyStoragePermissions(this);
+        requestPermission_storage.verifyAccessLocation(this);
+        setFindViewById();
+        lnLoading.setVisibility(View.VISIBLE);
+        rlMain.setVisibility(View.GONE);
+
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -116,7 +130,6 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
 
         mapFragment.getMapAsync(this);
 
-        setFindViewById();
         setOnClickListener();
 
         autocompleteFragmentOrigin.setHint(getResources().getString(R.string.enter_origin));
@@ -153,6 +166,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 Log.i(TAG, "An error occurred: " + status);
             }
         });
+
     }
 
     //region Back key
@@ -160,7 +174,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     public void onBackPressed() {
         new AlertDialog.Builder(this)
                 .setTitle("Save location to memory?")
-                .setMessage("Are you sure you want to save location to memory?")
+                .setMessage("Are you sure you want to save location to memory and exit?")
                 .setPositiveButton(getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         //region save file
@@ -193,7 +207,6 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                         } else {
                             try {
                                 FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_READABLE | MODE_APPEND);
-//                                BufferedWriter buffw = new BufferedWriter(fou);
                                 OutputStreamWriter osw = new OutputStreamWriter(fou);
                                 if (tvOrigin.getText().toString() != "") {
                                     try {
@@ -218,8 +231,9 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                             }
 
                         }
+                        Toast.makeText(MapsActivity_test.this, "Exit application", Toast.LENGTH_SHORT).show();
 
-
+                        MapsActivity_test.this.finish();
                         //endregion
                     }
                 })
@@ -234,30 +248,15 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
 
     }
 
-//    public String loadJSONFromAsset() {
-//        File file = getFileStreamPath("location.txt");
-//        String json = null;
-//        if (!file.exists()) {
-//            Toast.makeText(MapsActivity_test.this, "Not found saved location file, save location to load", Toast.LENGTH_SHORT).show();
-//        } else {
-//            try {
-//                InputStream is = getApplication().openFileInput("location.txt");
-//                int size = is.available();
-//                byte[] buffer = new byte[size];
-//                is.read(buffer);
-//                is.close();
-//                json = new String(buffer, "utf-8");
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                return null;
-//            }
-//        }
-//        return json;
-//    }
-
     private void setOnClickListener() {
+        lnLoading.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestPermission_storage.verifyStoragePermissions(MapsActivity_test.this);
+                lnLoading.setVisibility(View.GONE);
+                rlMain.setVisibility(View.VISIBLE);
+            }
+        });
         loadLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -446,7 +445,10 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         btnRemove = (Button) findViewById(R.id.btnRemove);
         tvShowLocation = (TextView) findViewById(R.id.tvShowLocation);
         lnCancel = (LinearLayout) findViewById(R.id.lnCancel);
+        lnLoading = (LinearLayout) findViewById(R.id.lnLoading);
+        rlMain = (RelativeLayout) findViewById(R.id.rlMain);
     }
+
 
     private void getLocationAddress(Double Lat, Double Lng) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
@@ -552,21 +554,21 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     }
 
     //region Request for access current location
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_ACCESS_FINE_LOCATION) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startActivity(getIntent());
-                finish();
-            }
-        }
-        if (requestCode == REQUEST_ACCESS_COARSE_LOCATION) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startActivity(getIntent());
-                finish();
-            }
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        if (requestCode == REQUEST_ACCESS_FINE_LOCATION) {
+//            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                startActivity(getIntent());
+//                finish();
+//            }
+//        }
+//        if (requestCode == REQUEST_ACCESS_COARSE_LOCATION) {
+//            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                startActivity(getIntent());
+//                finish();
+//            }
+//        }
+//    }
 //endregion
 
     @Override

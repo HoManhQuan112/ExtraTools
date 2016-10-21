@@ -15,4 +15,6 @@
     <string name="_0_min">0 min</string>
     <string name="show_location_tv">show_location_tv</string>
     <string name="close">Close</string>
+    <string name="loading">Loading</string>
+    <string name="press_to_continue">Press to continue</string>
 </resources>

@@ -5,6 +5,9 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.view.View;
+import android.widget.LinearLayout;
 
 /**
  * Created by user on 15/10/2016.
@@ -13,7 +16,8 @@ import android.support.v4.app.ActivityCompat;
 public class RequestPermission_Storage {
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static final int REQUEST_EXTERNAL_READ = 1;
-
+    private static final int REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int REQUEST_ACCESS_COARSE_LOCATION = 1;
 
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -53,9 +57,81 @@ public class RequestPermission_Storage {
                     REQUEST_EXTERNAL_READ
             );
         }
-
+//        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+//                Manifest.permission.ACCESS_COARSE_LOCATION)) {
+//            ActivityCompat.requestPermissions(activity,
+//                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+//                    REQUEST_ACCESS_COARSE_LOCATION);
+//        }
+//        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+//                Manifest.permission.ACCESS_FINE_LOCATION)) {
+//            ActivityCompat.requestPermissions(activity,
+//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+//                    REQUEST_ACCESS_FINE_LOCATION);
+//        }
+//        else {
+//            ActivityCompat.requestPermissions(activity,
+//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+//                    REQUEST_ACCESS_FINE_LOCATION);
+//            ActivityCompat.requestPermissions(activity,
+//                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+//                    REQUEST_ACCESS_COARSE_LOCATION);
+//        }
 
     }
 
+    public static void verifyAccessLocation(Activity activity) {
+//        int permission_access_fine_location = ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION);
+//        int permission_access_coarse_location = ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION);
+
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_ACCESS_COARSE_LOCATION);
+        }
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                Manifest.permission.ACCESS_FINE_LOCATION)) {
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_ACCESS_FINE_LOCATION);
+        } else {
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_ACCESS_FINE_LOCATION);
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_ACCESS_COARSE_LOCATION);
+        }
+
+    }
+
+    public static void verifyAccessLocation(Activity activity, LinearLayout linearLayout) {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            linearLayout.setVisibility(View.VISIBLE);
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_ACCESS_COARSE_LOCATION);
+        }
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                Manifest.permission.ACCESS_FINE_LOCATION)) {
+            linearLayout.setVisibility(View.VISIBLE);
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_ACCESS_FINE_LOCATION);
+        } else {
+            linearLayout.setVisibility(View.VISIBLE);
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_ACCESS_FINE_LOCATION);
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_ACCESS_COARSE_LOCATION);
+        }
+        linearLayout.setVisibility(View.GONE);
+
+    }
 
 }

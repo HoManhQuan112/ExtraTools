@@ -10,7 +10,6 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -102,7 +101,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     private int lvPosition;
     private TextView tvShowLocation;
     private LinearLayout lnCancel;
-    private LinearLayout lnLoading;
+    //    private LinearLayout lnLoading;
     private RelativeLayout rlMain;
 
     @Override
@@ -113,8 +112,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         setContentView(R.layout.activity_maps_test);
         requestPermission_storage.verifyAccessLocation(this);
         setFindViewById();
-        lnLoading.setVisibility(View.VISIBLE);
-        rlMain.setVisibility(View.GONE);
+//        rlMain.setVisibility(View.GONE);
 
 
 
@@ -166,6 +164,8 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 Log.i(TAG, "An error occurred: " + status);
             }
         });
+        requestPermission_storage.verifyStoragePermissions(this);
+//        rlMain.setVisibility(View.VISIBLE);
 
     }
 
@@ -249,14 +249,14 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
     }
 
     private void setOnClickListener() {
-        lnLoading.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                requestPermission_storage.verifyStoragePermissions(MapsActivity_test.this);
-                lnLoading.setVisibility(View.GONE);
-                rlMain.setVisibility(View.VISIBLE);
-            }
-        });
+//        lnLoading.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                requestPermission_storage.verifyStoragePermissions(MapsActivity_test.this);
+//                lnLoading.setVisibility(View.GONE);
+//                rlMain.setVisibility(View.VISIBLE);
+//            }
+//        });
         loadLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -445,7 +445,7 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
         btnRemove = (Button) findViewById(R.id.btnRemove);
         tvShowLocation = (TextView) findViewById(R.id.tvShowLocation);
         lnCancel = (LinearLayout) findViewById(R.id.lnCancel);
-        lnLoading = (LinearLayout) findViewById(R.id.lnLoading);
+//        lnLoading = (LinearLayout) findViewById(R.id.lnLoading);
         rlMain = (RelativeLayout) findViewById(R.id.rlMain);
     }
 

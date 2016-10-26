@@ -208,16 +208,17 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                             try {
                                 FileOutputStream fou = openFileOutput("location.txt", MODE_WORLD_READABLE | MODE_APPEND);
                                 OutputStreamWriter osw = new OutputStreamWriter(fou);
+
                                 if (tvOrigin.getText().toString() != "") {
                                     try {
-                                        osw.append(tvOrigin.getText().toString() + "\n");
+                                        osw.append(tvOrigin.getText().toString() + "\n\n");
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
                                 }
                                 if (tvDestination.getText().toString() != "") {
                                     try {
-                                        osw.append(tvDestination.getText().toString() + "\n");
+                                        osw.append(tvDestination.getText().toString() + "\n\n");
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
@@ -247,6 +248,16 @@ public class MapsActivity_test extends FragmentActivity implements OnMapReadyCal
                 .show();
 
     }
+
+    @Override
+    public int getRequestedOrientation() {
+        return super.getRequestedOrientation();
+    }
+
+//    @Override
+//    public void setRequestedOrientation(int requestedOrientation) {
+//        super.setRequestedOrientation(requestedOrientation);
+//    }
 
     private void setOnClickListener() {
 //        lnLoading.setOnClickListener(new View.OnClickListener() {
